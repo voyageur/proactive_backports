@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 set -x
 
-cloner='zuul-cloner https://git.openstack.org'
+cloner='zuul-cloner --color https://git.openstack.org'
 
 if [ -z "${ZUUL_CACHE_DIR}" ]; then
     echo "Please define ZUUL_CACHE_DIR." 1>&2
