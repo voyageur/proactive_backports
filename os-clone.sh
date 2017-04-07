@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
 
 cloner='zuul-cloner --color https://git.openstack.org'
 
@@ -22,13 +21,19 @@ for arg in "$@"; do
     fi
     proj=${namespace}/${project}
 
-    # first prepopulate cache
-    pushd ${ZUUL_CACHE_DIR}
-    ${cloner} ${proj}
-    popd
+    if ! [ -d "$ZUUL_CACHE_DIR/$proj" ]; then
+        # first prepopulate cache
+        pushd ${ZUUL_CACHE_DIR} 2>&1 > /dev/null
+        ${cloner} ${proj}
+        popd 2>&1 > /dev/null
+    fi
 
-    # now check out in current dir (from cache)
-    ${cloner} ${proj}
+    if ! [ -d "$proj" ]; then
+        # now check out in current dir (from cache)
+        ${cloner} ${proj}
+    fi
+
+    echo "$PWD/$proj"
 done
 
 exit 0
