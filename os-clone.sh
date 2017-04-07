@@ -8,10 +8,11 @@ if [ -z "${ZUUL_CACHE_DIR}" ]; then
     echo "Please define ZUUL_CACHE_DIR." 1>&2
     exit 1
 fi
+
 mkdir -p "${ZUUL_CACHE_DIR}"
 
 for arg in "$@"; do
-    arg=$(echo $arg | tr "/" "\n")
+    read -ra arg <<< $(echo $arg | tr "/" " ")
     if [ ${#arg[@]} -eq 2 ]; then
         namespace=${arg[0]}
         project=${arg[1]}
