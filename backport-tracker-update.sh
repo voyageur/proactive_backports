@@ -96,20 +96,20 @@ cmd="./bugs-fixed-since.py --repo $project_dir --start $oldest"
 # calculate list of easy backports and all backports to be able to tag the
 # former separately in trello
 bugs=`${cmd} | \
-      ./lp-filter-bugs-by-importance.py neutron --importance Wishlist | \
-      ./lp-filter-bugs-by-importance.py neutron --importance Low | \
-      ./lp-filter-bugs-by-importance.py neutron --importance Medium`
+      ./lp-filter-bugs-by-importance.py $project --importance Wishlist | \
+      ./lp-filter-bugs-by-importance.py $project --importance Low | \
+      ./lp-filter-bugs-by-importance.py $project --importance Medium`
 
 easy_bugs=`$cmd -e | \
-      ./lp-filter-bugs-by-importance.py neutron --importance Wishlist | \
-      ./lp-filter-bugs-by-importance.py neutron --importance Low | \
-      ./lp-filter-bugs-by-importance.py neutron --importance Medium`
+      ./lp-filter-bugs-by-importance.py $project --importance Wishlist | \
+      ./lp-filter-bugs-by-importance.py $project --importance Low | \
+      ./lp-filter-bugs-by-importance.py $project --importance Medium`
 
 # tag bugs as potential backports in LP
-tag neutron-proactive-backport-potential ${bugs}
+tag $project-proactive-backport-potential ${bugs}
 
 # tag easy backportable bugs accordingly in LP
-tag neutron-easy-proactive-backport-potential ${easy_bugs}
+tag $project-easy-proactive-backport-potential ${easy_bugs}
 
 # also create cards in trello
 for bug in ${easy_bugs}; do
