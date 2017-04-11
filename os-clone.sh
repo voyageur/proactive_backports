@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 cloner='zuul-cloner --color https://git.openstack.org'
 
 if [ -z "${ZUUL_CACHE_DIR}" ]; then
