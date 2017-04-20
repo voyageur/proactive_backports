@@ -84,9 +84,7 @@ if ! [ -d .venv ]; then
     # needed to access launchpad
     .venv/bin/pip install secretstorage
 
-    # to import into trello
-    # use booxter/ fork that supports unicode descriptions
-    git clone https://github.com/booxter/filch.git .filch
+    git clone https://github.com/rbrady/filch.git .filch
     .venv/bin/pip install -e .filch
 fi
 . .venv/bin/activate
