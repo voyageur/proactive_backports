@@ -11,5 +11,5 @@ fi
 
 rhpkg clone $package
 cd $package
-git remote add rhos -f ssh://ihrachys@code.engineering.redhat.com:22/neutron
+git remote add rhos -f ssh://ihrachys@code.engineering.redhat.com:22/$package
 exit 0
