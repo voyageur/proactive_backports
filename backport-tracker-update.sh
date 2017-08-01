@@ -32,7 +32,7 @@ tag () {
             echo "Would tag bug $bug with $tag"
         done
     else
-        echo $all_bugs | ./lp-tag.py "$tag"
+        echo "$all_bugs" | ./lp-tag.py "$tag"
     fi
 }
 
@@ -114,7 +114,7 @@ for bug in ${easy_bugs}; do
     if dry; then
         echo "Would import bug $bug as easy backport"
     else
-        filch-import --bug_id "$bug" -l EasyBackport -l ProactiveBackport --list_name='Proactive Backports'
+        filch-import bug --id "$bug" -l EasyBackport -l ProactiveBackport --list_name='Proactive Backports'
     fi
 done
 
@@ -123,7 +123,7 @@ for bug in $bugs; do
         if dry; then
             echo "Would import bug $bug as usual backport"
         else
-            filch-import --bug_id "$bug" -l ProactiveBackport --list_name='Proactive Backports'
+            filch-import bug --id "$bug" -l ProactiveBackport --list_name='Proactive Backports'
         fi
     fi
 done
