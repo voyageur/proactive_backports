@@ -1,2 +1,0 @@
-#!/bin/sh
-ssh ws ~/bin/vpn-down.sh

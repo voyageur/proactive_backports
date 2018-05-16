@@ -1,2 +1,0 @@
-#!/bin/sh
-ssh -t ws ~/bin/vpn-up.sh
