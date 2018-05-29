@@ -25,6 +25,7 @@ function containsElement () {
 }
 
 function tag () {
+    return
     tag=$1
     all_bugs=$(echo "${@:2}" | tr " " "\n")
     if [ $_dry -eq 1 ]; then
@@ -102,7 +103,6 @@ easy_bugs=`${cmd} -e | \
       ./lp-filter-bugs-by-importance.py $project --importance Low | \
       ./lp-filter-bugs-by-importance.py $project --importance Medium`
 
-echo $easy_bugs
 # tag bugs as potential backports in LP
 tag $project-proactive-backport-potential ${bugs}
 
