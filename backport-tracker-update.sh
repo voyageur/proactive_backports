@@ -4,9 +4,13 @@
 
 set -e
 
-SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TRELLO_BOARD="test-bc"
+TRELLO_COLUMN="Proactive Backports"
+
 GIT_DIR="/tmp/proactive-backports"
 GIT_VENV="${GIT_DIR}/venv"
+
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 _dry=0
 
@@ -75,7 +79,7 @@ goto "openstack/$project"
 project_dir=$PWD
 git fetch origin
 
-project_head=$(git show --oneline origin/master)
+project_head=$(git log --oneline --no-walk origin/master)
 
 goto openstack-infra/release-tools
 if ! [ -d "${GIT_VENV}" ]; then
@@ -106,6 +110,7 @@ easy_bugs=`${cmd} -e | \
       ./lp-filter-bugs-by-importance.py $project --importance Low | \
       ./lp-filter-bugs-by-importance.py $project --importance Medium`
 
+echo $easy_bugs
 # tag bugs as potential backports in LP
 tag $project-proactive-backport-potential ${bugs}
 
@@ -117,7 +122,7 @@ for bug in ${easy_bugs}; do
     if dry; then
         echo "Would import bug $bug as easy backport"
     else
-        filch-import bug --id "$bug" -l EasyBackport -l ProactiveBackport --list_name='Proactive Backports'
+        filch-import bug --id "$bug" -l EasyBackport -l ProactiveBackport --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
     fi
 done
 
@@ -126,7 +131,7 @@ for bug in $bugs; do
         if dry; then
             echo "Would import bug $bug as usual backport"
         else
-            filch-import bug --id "$bug" -l ProactiveBackport --list_name='Proactive Backports'
+            filch-import bug --id "$bug" -l ProactiveBackport --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
         fi
     fi
 done
