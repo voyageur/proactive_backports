@@ -14,17 +14,9 @@ SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 _dry=0
 
-function dry {
-    if [ $_dry -eq 1 ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 function die() { echo "$@" 1>&2 ; exit 1; }
 
-containsElement () {
+function containsElement () {
     local e
     for e in "${@:2}"; do
         [[ "$e" == "$1" ]] && return 0;
@@ -32,10 +24,10 @@ containsElement () {
     return 1
 }
 
-tag () {
+function tag () {
     tag=$1
     all_bugs=$(echo "${@:2}" | tr " " "\n")
-    if dry; then
+    if [ $_dry -eq 1 ]; then
         for bug in $all_bugs; do
             echo "Would tag bug $bug with $tag"
         done
@@ -119,7 +111,7 @@ tag $project-easy-proactive-backport-potential ${easy_bugs}
 
 # also create cards in trello
 for bug in ${easy_bugs}; do
-    if dry; then
+    if [ $_dry -eq 1 ]; then
         echo "Would import bug $bug as easy backport"
     else
         filch-import bug --id "$bug" -l EasyBackport -l ProactiveBackport --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
@@ -128,7 +120,7 @@ done
 
 for bug in $bugs; do
     if ! containsElement $bug $easy_bugs; then
-        if dry; then
+        if [ $_dry -eq 1 ]; then
             echo "Would import bug $bug as usual backport"
         else
             filch-import bug --id "$bug" -l ProactiveBackport --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
