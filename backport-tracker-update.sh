@@ -4,6 +4,10 @@
 
 set -e
 
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+GIT_DIR="/tmp/proactive-backports"
+GIT_VENV="${GIT_DIR}/venv"
+
 _dry=0
 
 function dry {
@@ -36,12 +40,11 @@ tag () {
     fi
 }
 
-# copy pasted from .bashrc
 function goto {
     proj=$1
-    mkdir -p ~/git
-    cd ~/git
-    cd $(os-clone.sh "$proj")
+    mkdir -p "${GIT_DIR}"
+    cd "${GIT_DIR}"
+    cd $("${SCRIPTS_DIR}"/os-clone.sh "$proj")
 }
 
 ### MAIN ###
@@ -75,19 +78,19 @@ git fetch origin
 project_head=$(git show --oneline origin/master)
 
 goto openstack-infra/release-tools
-if ! [ -d .venv ]; then
+if ! [ -d "${GIT_VENV}" ]; then
     # dbus-python doesn't work from pypi, so
     # we need to rely on system package here
-    virtualenv --system-site-packages .venv
-    .venv/bin/pip install -e .
+    virtualenv-3 --system-site-packages "${GIT_VENV}"
+    "${GIT_VENV}"/bin/pip install -e .
 
     # needed to access launchpad
-    .venv/bin/pip install secretstorage
+    "${GIT_VENV}"/bin/pip install launchpadlib secretstorage
 
-    git clone https://github.com/rbrady/filch.git .filch
-    .venv/bin/pip install -e .filch
+
+    "${GIT_VENV}"/bin/pip install git+https://github.com/rbrady/filch.git
 fi
-. .venv/bin/activate
+. "${GIT_VENV}"/bin/activate
 
 cmd="./bugs-fixed-since.py --repo $project_dir --start $oldest"
 
@@ -98,7 +101,7 @@ bugs=`${cmd} | \
       ./lp-filter-bugs-by-importance.py $project --importance Low | \
       ./lp-filter-bugs-by-importance.py $project --importance Medium`
 
-easy_bugs=`$cmd -e | \
+easy_bugs=`${cmd} -e | \
       ./lp-filter-bugs-by-importance.py $project --importance Wishlist | \
       ./lp-filter-bugs-by-importance.py $project --importance Low | \
       ./lp-filter-bugs-by-importance.py $project --importance Medium`
