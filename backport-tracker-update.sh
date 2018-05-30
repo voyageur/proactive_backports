@@ -4,6 +4,8 @@
 
 set -e
 
+DRY_RUN=0
+TRELLO_EXTRA_LABEL=""
 TRELLO_BOARD="test-bc"
 TRELLO_COLUMN="Proactive Backports"
 
@@ -11,8 +13,6 @@ GIT_DIR="/tmp/proactive-backports"
 GIT_VENV="${GIT_DIR}/venv"
 
 SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-_dry=0
 
 function die() { echo "$@" 1>&2 ; exit 1; }
 
@@ -25,10 +25,9 @@ function containsElement () {
 }
 
 function tag () {
-    return
     tag=$1
     all_bugs=$(echo "${@:2}" | tr " " "\n")
-    if [ $_dry -eq 1 ]; then
+    if [ ${DRY_RUN} -eq 1 ]; then
         for bug in $all_bugs; do
             echo "Would tag bug $bug with $tag"
         done
@@ -44,13 +43,39 @@ function goto {
     cd $("${SCRIPTS_DIR}"/os-clone.sh "$proj")
 }
 
+function show_help {
+    echo "Proactive backports tracker
+Usage: $(basename $0) [-d] [-b board] [-c column] [-h] [-l extra_label] -p project -s oldest_rev
+
+Options:
+-d              dry run, do do not actually do any changes in external sources
+-b board        override Trello board to use
+-c column       override Trello column to use
+-l extra_label  set an additional Trello label
+-p project      project to analyze
+-s oldest_rev   git revision to start parsing from"
+
+    exit 0
+}
+
 ### MAIN ###
 
-# -d means don't actually do any changes in external sources
-while getopts "dp:s:" arg; do
+while getopts "b:c:dhl:p:s:" arg; do
     case $arg in
+        b)
+            TRELLO_BOARD="$OPTARG"
+            ;;
+        c)
+            TRELLO_COLUMN="$OPTARG"
+            ;;
         d)
-            _dry=1
+            DRY_RUN=1
+            ;;
+        h)
+            show_help
+            ;;
+        l)
+            TRELLO_EXTRA_LABEL="-l $OPTARG"
             ;;
         p)
             project=$OPTARG
@@ -111,19 +136,19 @@ tag $project-easy-proactive-backport-potential ${easy_bugs}
 
 # also create cards in trello
 for bug in ${easy_bugs}; do
-    if [ $_dry -eq 1 ]; then
+    if [ ${DRY_RUN} -eq 1 ]; then
         echo "Would import bug $bug as easy backport"
     else
-        filch-import bug --id "$bug" -l EasyBackport -l ProactiveBackport --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
+        filch-import bug --id "$bug" -l EasyBackport -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
     fi
 done
 
 for bug in $bugs; do
     if ! containsElement $bug $easy_bugs; then
-        if [ $_dry -eq 1 ]; then
+        if [ ${DRY_RUN} -eq 1 ]; then
             echo "Would import bug $bug as usual backport"
         else
-            filch-import bug --id "$bug" -l ProactiveBackport --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
+            filch-import bug --id "$bug" -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
         fi
     fi
 done
