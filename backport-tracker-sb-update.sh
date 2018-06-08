@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# !!! The script assumes dbus-python is installed for secretstorage !!!
-
 set -e
 
 DRY_RUN=0
@@ -24,7 +22,7 @@ function containsElement () {
     return 1
 }
 
-function tag () {
+function tag_story () {
     tag=$1
     all_bugs=$(echo "${@:2}" | tr " " "\n")
     if [ ${DRY_RUN} -eq 1 ]; then
@@ -32,7 +30,9 @@ function tag () {
             echo "Would tag bug $bug with $tag"
         done
     else
-        echo "$all_bugs" | ./lp-tag.py "$tag"
+        return
+        #TODO handle token
+        #echo "$all_bugs" | ./sb-tag.py "$tag"
     fi
 }
 
@@ -44,7 +44,7 @@ function goto {
 }
 
 function show_help {
-    echo "Proactive backports tracker
+    echo "Proactive backports tracker for Storyboard
 Usage: $(basename $0) [-d] [-b board] [-c column] [-h] [-l extra_label] -p project -s oldest_rev
 
 Options:
@@ -106,40 +106,33 @@ if ! [ -d "${GIT_VENV}" ]; then
     virtualenv-3 --system-site-packages "${GIT_VENV}"
     "${GIT_VENV}"/bin/pip install -e .
 
-    # needed to access launchpad
-    "${GIT_VENV}"/bin/pip install launchpadlib secretstorage
-
-
     "${GIT_VENV}"/bin/pip install git+https://github.com/rbrady/filch.git
 fi
 . "${GIT_VENV}"/bin/activate
 
-cmd="./bugs-fixed-since.py --repo $project_dir --start $oldest"
+# Stories are prefixed as "storyboard:xxx", filter on the separator
+cmd="./bugs-fixed-since.py -sb --repo $project_dir --start $oldest"
 
 # calculate list of easy backports and all backports to be able to tag the
 # former separately in trello
 bugs=`${cmd} | \
-      ./lp-filter-bugs-by-importance.py $project --importance Wishlist | \
-      ./lp-filter-bugs-by-importance.py $project --importance Low | \
-      ./lp-filter-bugs-by-importance.py $project --importance Medium`
+      cut -s -d: -f2`
 
 easy_bugs=`${cmd} -e | \
-      ./lp-filter-bugs-by-importance.py $project --importance Wishlist | \
-      ./lp-filter-bugs-by-importance.py $project --importance Low | \
-      ./lp-filter-bugs-by-importance.py $project --importance Medium`
+      cut -s -d: -f2`
 
-# tag bugs as potential backports in LP
-tag $project-proactive-backport-potential ${bugs}
+# tag bugs as potential backports in SB
+tag_story $project-proactive-backport-potential ${bugs}
 
-# tag easy backportable bugs accordingly in LP
-tag $project-easy-proactive-backport-potential ${easy_bugs}
+# tag easy backportable bugs accordingly in SB
+tag_story $project-easy-proactive-backport-potential ${easy_bugs}
 
 # also create cards in trello
 for bug in ${easy_bugs}; do
     if [ ${DRY_RUN} -eq 1 ]; then
         echo "Would import bug $bug as easy backport"
     else
-        filch-import bug --id "$bug" -l EasyBackport -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
+        filch-import story --id "$bug" -l EasyBackport -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
     fi
 done
 
@@ -148,7 +141,7 @@ for bug in $bugs; do
         if [ ${DRY_RUN} -eq 1 ]; then
             echo "Would import bug $bug as usual backport"
         else
-            filch-import bug --id "$bug" -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
+            filch-import story --id "$bug" -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
         fi
     fi
 done
