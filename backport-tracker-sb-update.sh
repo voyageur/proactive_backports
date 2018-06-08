@@ -6,6 +6,7 @@ DRY_RUN=0
 TRELLO_EXTRA_LABEL=""
 TRELLO_BOARD="test-bc"
 TRELLO_COLUMN="Proactive Backports"
+SB_TOKEN=""
 
 GIT_DIR="/tmp/proactive-backports"
 GIT_VENV="${GIT_DIR}/venv"
@@ -25,14 +26,12 @@ function containsElement () {
 function tag_story () {
     tag=$1
     all_bugs=$(echo "${@:2}" | tr " " "\n")
-    if [ ${DRY_RUN} -eq 1 ]; then
+    if [ ${DRY_RUN} -eq 1 ] || [ -e ${SB_TOKEN} ]; then
         for bug in $all_bugs; do
             echo "Would tag bug $bug with $tag"
         done
     else
-        return
-        #TODO handle token
-        #echo "$all_bugs" | ./sb-tag.py "$tag"
+        echo "$all_bugs" | ./sb-tag.py --token ${SB_TOKEN} "$tag"
     fi
 }
 
@@ -45,7 +44,8 @@ function goto {
 
 function show_help {
     echo "Proactive backports tracker for Storyboard
-Usage: $(basename $0) [-d] [-b board] [-c column] [-h] [-l extra_label] -p project -s oldest_rev
+Usage: $(basename $0) [-d] [-b board] [-c column] [-h] [-l extra_label]
+                      [-t sb_token] -p project -s oldest_rev
 
 Options:
 -d              dry run, do do not actually do any changes in external sources
@@ -53,14 +53,15 @@ Options:
 -c column       override Trello column to use
 -l extra_label  set an additional Trello label
 -p project      project to analyze
--s oldest_rev   git revision to start parsing from"
+-s oldest_rev   git revision to start parsing from
+-t sb_token     storyboard API token to tag stories"
 
     exit 0
 }
 
 ### MAIN ###
 
-while getopts "b:c:dhl:p:s:" arg; do
+while getopts "b:c:dhl:p:s:t:" arg; do
     case $arg in
         b)
             TRELLO_BOARD="$OPTARG"
@@ -82,6 +83,9 @@ while getopts "b:c:dhl:p:s:" arg; do
             ;;
         s)
             oldest=$OPTARG
+            ;;
+        t)
+            sb_token=$OPTARG
             ;;
     esac
 done
@@ -105,6 +109,10 @@ if ! [ -d "${GIT_VENV}" ]; then
     # we need to rely on system package here
     virtualenv-3 --system-site-packages "${GIT_VENV}"
     "${GIT_VENV}"/bin/pip install -e .
+
+    # needed to update storyboard
+    "${GIT_VENV}"/bin/pip install python-storyboardclient
+
 
     "${GIT_VENV}"/bin/pip install git+https://github.com/rbrady/filch.git
 fi
