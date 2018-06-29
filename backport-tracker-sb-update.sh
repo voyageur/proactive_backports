@@ -25,13 +25,13 @@ function containsElement () {
 
 function tag_story () {
     tag=$1
-    all_bugs=$(echo "${@:2}" | tr " " "\n")
+    all_stories=$(echo "${@:2}" | tr " " "\n")
     if [ ${DRY_RUN} -eq 1 ] || [ -e ${SB_TOKEN} ]; then
-        for bug in $all_bugs; do
-            echo "Would tag bug $bug with $tag"
+        for story in $all_stories; do
+            echo "Would tag story $story with $tag"
         done
     else
-        echo "$all_bugs" | ./sb-tag.py --token ${SB_TOKEN} "$tag"
+        echo "$all_stories" | ./sb-tag.py --token ${SB_TOKEN} "$tag"
     fi
 }
 
@@ -123,33 +123,33 @@ cmd="./bugs-fixed-since.py -sb --repo $project_dir --start $oldest"
 
 # calculate list of easy backports and all backports to be able to tag the
 # former separately in trello
-bugs=`${cmd} | \
+stories=`${cmd} | \
       cut -s -d: -f2`
 
-easy_bugs=`${cmd} -e | \
+easy_stories=`${cmd} -e | \
       cut -s -d: -f2`
 
-# tag bugs as potential backports in SB
-tag_story $project-proactive-backport-potential ${bugs}
+# tag stories as potential backports in SB
+tag_story $project-proactive-backport-potential ${stories}
 
-# tag easy backportable bugs accordingly in SB
-tag_story $project-easy-proactive-backport-potential ${easy_bugs}
+# tag easy backportable stories accordingly in SB
+tag_story $project-easy-proactive-backport-potential ${easy_stories}
 
 # also create cards in trello
-for bug in ${easy_bugs}; do
+for story in ${easy_stories}; do
     if [ ${DRY_RUN} -eq 1 ]; then
-        echo "Would import bug $bug as easy backport"
+        echo "Would import story $story as easy backport"
     else
-        filch-import story --id "$bug" -l EasyBackport -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
+        filch-import story --id "$story" -l EasyBackport -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
     fi
 done
 
-for bug in $bugs; do
-    if ! containsElement $bug $easy_bugs; then
+for story in $stories; do
+    if ! containsElement $story $easy_stories; then
         if [ ${DRY_RUN} -eq 1 ]; then
-            echo "Would import bug $bug as usual backport"
+            echo "Would import story $story as usual backport"
         else
-            filch-import story --id "$bug" -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
+            filch-import story --id "$story" -l ProactiveBackport ${TRELLO_EXTRA_LABEL} --list_name="${TRELLO_COLUMN}" -b "${TRELLO_BOARD}"
         fi
     fi
 done
