@@ -31,7 +31,7 @@ function tag_story () {
             echo "Would tag story $story with $tag"
         done
     else
-        echo "$all_stories" | ./sb-tag.py --token ${SB_TOKEN} "$tag"
+        echo "$all_stories" | "${SCRIPTS_DIR}"/sb-tag.py --token ${SB_TOKEN} "$tag"
     fi
 }
 
@@ -103,12 +103,11 @@ git fetch origin
 
 project_head=$(git log --oneline --no-walk origin/master)
 
-goto openstack-infra/release-tools
 if ! [ -d "${GIT_VENV}" ]; then
     # dbus-python doesn't work from pypi, so
     # we need to rely on system package here
     virtualenv-3 --system-site-packages "${GIT_VENV}"
-    "${GIT_VENV}"/bin/pip install -e .
+    "${GIT_VENV}"/bin/pip install GitPython
 
     # needed to update storyboard
     "${GIT_VENV}"/bin/pip install python-storyboardclient
@@ -119,7 +118,7 @@ fi
 . "${GIT_VENV}"/bin/activate
 
 # Stories are prefixed as "storyboard:xxx", filter on the separator
-cmd="./bugs-fixed-since.py -sb --repo $project_dir --start $oldest"
+cmd=""${SCRIPTS_DIR}"/bugs-fixed-since.py -sb --repo $project_dir --start $oldest"
 
 # calculate list of easy backports and all backports to be able to tag the
 # former separately in trello

@@ -32,7 +32,7 @@ function tag_lp () {
             echo "Would tag bug $bug with $tag"
         done
     else
-        echo "$all_bugs" | ./lp-tag.py "$tag"
+        echo "$all_bugs" | "${SCRIPTS_DIR}"/lp-tag.py "$tag"
     fi
 }
 
@@ -99,12 +99,11 @@ git fetch origin
 
 project_head=$(git log --oneline --no-walk origin/master)
 
-goto openstack-infra/release-tools
 if ! [ -d "${GIT_VENV}" ]; then
     # dbus-python doesn't work from pypi, so
     # we need to rely on system package here
     virtualenv-3 --system-site-packages "${GIT_VENV}"
-    "${GIT_VENV}"/bin/pip install -e .
+    "${GIT_VENV}"/bin/pip install GitPython
 
     # needed to access launchpad
     "${GIT_VENV}"/bin/pip install launchpadlib secretstorage
@@ -114,19 +113,19 @@ if ! [ -d "${GIT_VENV}" ]; then
 fi
 . "${GIT_VENV}"/bin/activate
 
-cmd="./bugs-fixed-since.py --repo $project_dir --start $oldest"
+cmd=""${SCRIPTS_DIR}"/bugs-fixed-since.py --repo $project_dir --start $oldest"
 
 # calculate list of easy backports and all backports to be able to tag the
 # former separately in trello
 bugs=`${cmd} | \
-      ./lp-filter-bugs-by-importance.py $project --importance Wishlist | \
-      ./lp-filter-bugs-by-importance.py $project --importance Low | \
-      ./lp-filter-bugs-by-importance.py $project --importance Medium`
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py $project --importance Wishlist | \
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py $project --importance Low | \
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py $project --importance Medium`
 
 easy_bugs=`${cmd} -e | \
-      ./lp-filter-bugs-by-importance.py $project --importance Wishlist | \
-      ./lp-filter-bugs-by-importance.py $project --importance Low | \
-      ./lp-filter-bugs-by-importance.py $project --importance Medium`
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py $project --importance Wishlist | \
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py $project --importance Low | \
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py $project --importance Medium`
 
 # tag bugs as potential backports in LP
 tag_lp $project-proactive-backport-potential ${bugs}
