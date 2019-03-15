@@ -106,7 +106,7 @@ project_head=$(git log --oneline --no-walk origin/master)
 if ! [ -d "${GIT_VENV}" ]; then
     # dbus-python doesn't work from pypi, so
     # we need to rely on system package here
-    virtualenv-3 --system-site-packages "${GIT_VENV}"
+    virtualenv --system-site-packages "${GIT_VENV}"
     "${GIT_VENV}"/bin/pip install GitPython
 
     # needed to update storyboard
