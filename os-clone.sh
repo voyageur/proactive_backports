@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cloner='git clone https://git.openstack.org/'
+cloner='git clone https://opendev.org/'
 
 for arg in "$@"; do
     read -ra arg <<< $(echo $arg | tr "/" " ")
