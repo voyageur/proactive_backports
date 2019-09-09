@@ -85,7 +85,7 @@ while getopts "b:c:dhl:p:s:t:" arg; do
             oldest=$OPTARG
             ;;
         t)
-            sb_token=$OPTARG
+            SB_TOKEN=$OPTARG
             ;;
     esac
 done
