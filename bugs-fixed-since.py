@@ -23,8 +23,8 @@ from git import cmd
 from git import Repo
 
 
-BUG_PATTERN = r'Bug:\s+#?(?P<bugnum>\d+)'
-STORYBOARD_PATTERN = r'Story:\s+#?(?P<storynum>\d+)'
+BUG_PATTERN = r'(?i)Bug:\s+#?(?P<bugnum>\d+)'
+STORYBOARD_PATTERN = r'(?i)Story:\s+#?(?P<storynum>\d+)'
 CHANGEID_PATTERN = r'Change-Id:\s+(?P<id>[0-9a-zA-Z]+)'
 
 
