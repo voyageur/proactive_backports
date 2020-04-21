@@ -49,7 +49,7 @@ def _filter_bugs(lp, project, importance, bugs):
 def main():
     args = _parse_args()
 
-    lp = Launchpad.login_with('openstack-releasing', 'production')
+    lp = Launchpad.login_anonymously('openstack-proactive_backports', 'production')
 
     bugs = [line.strip() for line in sys.stdin.readlines()]
     for bug in _filter_bugs(lp, args.project, args.importance, bugs):
