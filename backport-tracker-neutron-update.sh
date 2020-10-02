@@ -115,6 +115,8 @@ bugs=$(echo "${bug_list}" | \
       "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py ${PROJECT} --importance Medium)
 filter_ovn_bugs=$(echo "${bugs}" | \
       "${SCRIPTS_DIR}"/lp-filter-bugs-by-tag.py ${PROJECT} ovn)
+filter_ovn_bugs=$(echo "${filter_ovn_bugs}" | \
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-tag.py ${PROJECT} ovn-octavia-provider)
 
 # tag bugs as potential backports in LP
 tag_lp $PROJECT-proactive-backport-potential ${bugs}
