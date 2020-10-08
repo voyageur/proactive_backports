@@ -107,15 +107,22 @@ if ! [ -d "${GIT_VENV}" ]; then
 fi
 . "${GIT_VENV}"/bin/activate
 
+# All bugs
 bug_list=$("${SCRIPTS_DIR}"/bugs-fixed-since.py --repo $project_dir --start $oldest)
 
+# Filter out low importance
 bugs=$(echo "${bug_list}" | \
       "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py ${PROJECT} --importance Wishlist | \
       "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py ${PROJECT} --importance Low | \
       "${SCRIPTS_DIR}"/lp-filter-bugs-by-importance.py ${PROJECT} --importance Medium)
+# Filter out RFEs
+bugs=$(echo "${bugs}" | \
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-tag.py ${PROJECT} rfe | \
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-tag.py ${PROJECT} rfe-approved)
+
+# Separate list for OVN bugs
 filter_ovn_bugs=$(echo "${bugs}" | \
-      "${SCRIPTS_DIR}"/lp-filter-bugs-by-tag.py ${PROJECT} ovn)
-filter_ovn_bugs=$(echo "${filter_ovn_bugs}" | \
+      "${SCRIPTS_DIR}"/lp-filter-bugs-by-tag.py ${PROJECT} ovn | \
       "${SCRIPTS_DIR}"/lp-filter-bugs-by-tag.py ${PROJECT} ovn-octavia-provider)
 
 # tag bugs as potential backports in LP
