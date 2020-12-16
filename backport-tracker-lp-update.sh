@@ -109,9 +109,7 @@ if ! [ -d "${GIT_VENV}" ]; then
     "${GIT_VENV}"/bin/pip install launchpadlib secretstorage
 
 
-    # Local checkout until https://github.com/rbrady/filch/pull/22 merges
-    #"${GIT_VENV}"/bin/pip install git+https://github.com/rbrady/filch.git
-    "${GIT_VENV}"/bin/pip install git+https://github.com/voyageur/filch.git@fix_storyboard_url
+    "${GIT_VENV}"/bin/pip install git+https://github.com/rbrady/filch.git
 fi
 . "${GIT_VENV}"/bin/activate
 
